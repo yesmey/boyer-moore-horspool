@@ -82,15 +82,15 @@ namespace Horspool
     constexpr inline size_t Search(const Needle needle, StringView haystack)
     {
         const StringView needleStr = needle.toString();
-        const auto haystackLen = haystack.size();
+        const size_t haystackLen = haystack.size();
         const size_t needleLen = needleStr.size();
         if (unlikely(needleLen > haystackLen))
             return haystackLen;
 
         if (unlikely(needleLen == 1))
         {
-            const auto pos = haystack.find_first_of(needleStr[0]);
-            return pos != StringView::npos ? pos : haystackLen;
+            const auto pos = (const char*)memchr(haystack.data(), needleStr[0], haystackLen);
+            return pos != nullptr ? size_t(pos - haystack.data()) : haystackLen;
         }
 
         const size_t needleLastPos = needleLen - 1;
@@ -100,7 +100,7 @@ namespace Horspool
         {
             const char hayChar = haystack[haystackPos + needleLastPos];
             if (needleLastChr == hayChar
-                && needleStr.compare(0, needleLastPos, haystack, haystackPos, needleLastPos) == 0)
+                && std::memcmp(needleStr.data(), haystack.data() + haystackPos, needleLastChr) == 0)
             {
                 return haystackPos;
             }
